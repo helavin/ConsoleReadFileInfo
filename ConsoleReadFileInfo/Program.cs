@@ -1,14 +1,13 @@
 ﻿using ConsoleReadFileInfo.Controllers;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Forms;
+
 
 namespace ConsoleReadFileInfo
 {
@@ -19,33 +18,40 @@ namespace ConsoleReadFileInfo
         [STAThread]
         static void Main(string[] args)
         {
+            var currThread = Thread.CurrentThread;
+            currThread.Name = "Main";
+
             Console.OutputEncoding = Encoding.UTF8;
             System.Windows.Forms.MessageBox.Show("Укажите путь к папке!");
             ReadInfo readInfo = new ReadInfo();
-            //readInfo.ReadInfoAboutFiles();
 
             // Путь к папке
-            string currentFolderPath = readInfo.GetCurentFolder();
-            pathes.Enqueue(currentFolderPath);
+            string firstFolderPath = readInfo.GetCurentFolder();
+            if (!CheckPath(firstFolderPath))
+                return;
 
-            Task taskGetPathes = new Task(() => //{
-            readInfo.GetPathes(currentFolderPath, ref pathes)
-        //    }
-        );
+            pathes.Enqueue(firstFolderPath);
 
-            // задача продолжения
-            Task task2 = taskGetPathes.ContinueWith(task => readInfo.Display(ref pathes));
+            readInfo.GetPathes(firstFolderPath, ref pathes);
 
-            taskGetPathes.Start();
-
-            // ждем окончания второй задачи
-            task2.Wait();
-
-            Console.WriteLine("Завершение метода Main");
+            while (pathes.Any())
+            {
+                Trace.WriteLine($"\t{currThread.ManagedThreadId}: {currThread.Name}");
+                readInfo.CreateFileInfo(ref pathes);
+            }
 
             Console.ReadKey();
         }
 
-
+        private static bool CheckPath(string path)
+        {
+            if (path == string.Empty)
+            {
+                Console.WriteLine("Папка не выбрана. Нажмите любую клавишу для закрытия.");
+                Console.ReadKey();
+                return false;
+            }
+            else return true;
+        }
     }
 }

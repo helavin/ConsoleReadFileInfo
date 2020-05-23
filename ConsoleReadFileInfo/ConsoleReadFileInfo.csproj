@@ -47,7 +47,7 @@
   <ItemGroup>
     <Compile Include="Controllers\IReadInfo.cs" />
     <Compile Include="Controllers\ReadInfo.cs" />
-    <Compile Include="Model\InfoFile.cs" />
+    <Compile Include="Model\InfoAboutFile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -4,3 +4,10 @@ C:\Users\helavin\source\repos\ConsoleReadFileInfo\ConsoleReadFileInfo\bin\Debug\
 C:\Users\helavin\source\repos\ConsoleReadFileInfo\ConsoleReadFileInfo\bin\Debug\ConsoleReadFileInfo.pdb
 C:\Users\helavin\source\repos\ConsoleReadFileInfo\ConsoleReadFileInfo\obj\Debug\ConsoleReadFileInfo.exe
 C:\Users\helavin\source\repos\ConsoleReadFileInfo\ConsoleReadFileInfo\obj\Debug\ConsoleReadFileInfo.pdb
+C:\Users\helavin\source\repos\helavin\ConsoleReadFileInfo\ConsoleReadFileInfo\bin\Debug\ConsoleReadFileInfo.exe.config
+C:\Users\helavin\source\repos\helavin\ConsoleReadFileInfo\ConsoleReadFileInfo\bin\Debug\ConsoleReadFileInfo.exe
+C:\Users\helavin\source\repos\helavin\ConsoleReadFileInfo\ConsoleReadFileInfo\bin\Debug\ConsoleReadFileInfo.pdb
+C:\Users\helavin\source\repos\helavin\ConsoleReadFileInfo\ConsoleReadFileInfo\obj\Debug\ConsoleReadFileInfo.csproj.CoreCompileInputs.cache
+C:\Users\helavin\source\repos\helavin\ConsoleReadFileInfo\ConsoleReadFileInfo\obj\Debug\ConsoleReadFileInfo.exe
+C:\Users\helavin\source\repos\helavin\ConsoleReadFileInfo\ConsoleReadFileInfo\obj\Debug\ConsoleReadFileInfo.pdb
+C:\Users\helavin\source\repos\helavin\ConsoleReadFileInfo\ConsoleReadFileInfo\obj\Debug\ConsoleReadFileInfo.csprojAssemblyReference.cache

@@ -4,84 +4,111 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
-
+using ConsoleReadFileInfo.Model;
+using System.Threading;
+using System.Diagnostics;
 
 namespace ConsoleReadFileInfo.Controllers
 {
-    class ReadInfo : IReadInfo
+    internal class ReadInfo : IReadInfo
     {
-        private string path;
-        public string Path
+        readonly static object syncLock = new object();
+        internal Thread t1;
+        internal Thread t2;
+
+        /// <summary>
+        /// Извлекает папки из очереди, получает коллекцию файлов и создает экземпляры класса InfoAboutFile
+        /// </summary>
+        /// <param name="pathes">Очередь папок, из которой извлекаются подпапки</param>
+        public void CreateFileInfo(ref Queue<string> pathes)
         {
-            get { return path; }
-            set
+            string path_ = string.Empty;
+            
+            lock (syncLock)
             {
-                if (value != string.Empty)
-                path = value;
-            }
-        }
-
-
-        public void ReadInfoAboutFiles()
-        {
-            Path = GetCurentFolder();
-            if (Path == null)
-            {
-                Console.WriteLine("Папка не выбрана!");
-                return;
-            }
-                
-            Console.WriteLine(Path);
-
-            Queue<string> fileNames = new Queue<string>();
-            Queue<string> directoriesNames = new Queue<string>();
-
-            foreach (var f in Directory.GetFiles(Path))
-            {
-                fileNames.Enqueue(f);
-            }
-
-            foreach (var f in Directory.GetDirectories(Path))
-            {
-                directoriesNames.Enqueue(f);
-            }
-
-            Console.WriteLine("Directories:");
-            foreach (var fn in directoriesNames)
-                Console.WriteLine(fn);
-
-            Console.WriteLine("\nFiles:");
-            foreach (var fn in fileNames)
-                Console.WriteLine(fn);
-
-        }
-
-        internal void Display(ref Queue<string> pathes)
-        {
-            Parallel.ForEach(pathes, (p) =>
-            {
-                Console.WriteLine(p);
-            });
-        }
-
-        internal void GetPathes(string path, ref Queue<string> pathes)
-        {
-            try
-            {
-                var folders = Directory.GetDirectories(path);
-                foreach (var f in folders)
+                if (t1 != null && !t1.IsAlive)
+                    path_ = pathes.Dequeue();
+                t2 = new Thread(() =>
                 {
-                    //Console.WriteLine($"{f} - {Directory.GetAccessControl(f).AreAccessRulesCanonical}");
-                    pathes.Enqueue(f);
-                    GetPathes(f, ref pathes);
-                }
+                    var currThread = Thread.CurrentThread;
+                    currThread.Name = "CreateFileInfo";
+
+                    if (path_ != string.Empty)
+                    {
+                        try
+                        {
+                            var files = Directory.GetFiles(path_);
+
+                            // TODO: запилить в метод
+                            foreach (var file in files)
+                            {
+                                FileInfo fi = new FileInfo(file);
+                                if (fi.Exists)
+                                {
+                                    InfoAboutFile info = new InfoAboutFile(fi.Directory.FullName, fi.Name, fi.Length);
+
+                                    Console.WriteLine($"\t{currThread.ManagedThreadId} {currThread.Name}: " +
+                                        $"{info.FileDirectory} - Файл: {info.FileName}, {info.FileLength} байт.");
+
+                                    //TODO: создание очереди из объектов класса InfoAboutFile
+                                }
+                            }
+                        }
+                        catch (Exception)
+                        {
+                            Console.WriteLine($"\t*****Нет доступа к файлу  по пути {path_}*****");
+                        }
+                    }
+                }, 5);
+                t2.Start();
             }
-            catch (Exception)
-            {
-                Console.WriteLine($"Нет доступа к папке по пути {path}");                
-            }            
         }
 
+        /// <summary>
+        /// Извлекает все подпапки переданной папки
+        /// </summary>
+        /// <param name="path">Папка в которой нужно найти подпапки</param>
+        /// <param name="pathes">Очередь папок, в которую добавляются подпапки</param>
+        public void GetPathes(string path, ref Queue<string> pathes)
+        {
+            var pathes_ = pathes;
+            lock (syncLock)
+            {
+                t1 = new Thread(() =>
+                {
+                    var currThread = Thread.CurrentThread;
+                    currThread.Name = "GetPathes";
+                    try
+                    {
+                        if (Directory.Exists(path))
+                        {
+                            var folders = Directory.GetDirectories(path);
+                            foreach (var f in folders)
+                            {
+                                Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
+
+                                pathes_.Enqueue(f);
+                                GetPathes(f, ref pathes_);
+                            }
+                        }
+                    }
+                    catch (Exception)
+                    {
+                        Console.WriteLine($"\t* * * * * Нет доступа к папке по пути {path} * * * * *");
+                    }
+                }, 5);
+                t1.Start();
+
+                // потестить
+                if (t2 != null && t2.IsAlive)
+                    t2.Join();
+            }
+        }
+
+        /// <summary>
+        /// Открывает форму для выбора директории
+        /// </summary>
+        /// <returns></returns>
         internal string GetCurentFolder()
         {
             using (System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog())

@@ -8,7 +8,8 @@ namespace ConsoleReadFileInfo.Controllers
 {
     interface IReadInfo
     {
-        string Path { get; set; }
-        void ReadInfoAboutFiles();
+        void GetPathes(string path, ref Queue<string> pathes);
+        void CreateFileInfo(ref Queue<string> pathes);
+        
     }
 }
