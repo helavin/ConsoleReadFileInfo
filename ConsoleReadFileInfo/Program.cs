@@ -1,4 +1,5 @@
 ﻿using ConsoleReadFileInfo.Controllers;
+using ConsoleReadFileInfo.Model;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,6 +15,7 @@ namespace ConsoleReadFileInfo
     class Program
     {
         private static Queue<string> pathes = new Queue<string>();
+        private static Queue<InfoFile> infoFiles = new Queue<InfoFile>();
 
         [STAThread]
         static void Main(string[] args)
@@ -25,24 +27,43 @@ namespace ConsoleReadFileInfo
             System.Windows.Forms.MessageBox.Show("Укажите путь к папке!");
             ReadInfo readInfo = new ReadInfo();
 
+            
+
             // Путь к папке
-            string firstFolderPath = readInfo.GetCurentFolder();
-            if (!CheckPath(firstFolderPath))
+            string curentFolderPath = readInfo.GetCurentFolder();
+            if (!CheckPath(curentFolderPath))
                 return;
 
-            pathes.Enqueue(firstFolderPath);
+            pathes.Enqueue(curentFolderPath);
 
-            readInfo.GetPathes(firstFolderPath, ref pathes);
+            readInfo.GetPathes(curentFolderPath, ref pathes);
+
 
             while (pathes.Any())
             {
-                Trace.WriteLine($"\t{currThread.ManagedThreadId}: {currThread.Name}");
-                readInfo.CreateFileInfo(ref pathes);
+                //Trace.WriteLine($"\t{currThread.ManagedThreadId}: {currThread.Name}");
+                readInfo.GetFileInfo(ref pathes, ref infoFiles);
             }
 
+            while (infoFiles.Any())
+            {
+                WriteInfo writeInfo = new WriteInfo();
+                writeInfo.WriteFileInfo(ref infoFiles);
+            }
+
+
+            //Console.ReadKey();
+            //if (infoFiles.Count != 0)
+            //    foreach (var info in infoFiles)
+            //        Console.WriteLine(info.Name);
             Console.ReadKey();
         }
 
+        /// <summary>
+        /// Проверяет содержит ли path путь к папке
+        /// </summary>
+        /// <param name="path">Путь который необходимо проверить</param>
+        /// <returns></returns>
         private static bool CheckPath(string path)
         {
             if (path == string.Empty)

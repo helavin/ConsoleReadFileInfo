@@ -10,58 +10,71 @@ using System.Diagnostics;
 
 namespace ConsoleReadFileInfo.Controllers
 {
-    internal class ReadInfo : IReadInfo
+    class ReadInfo : IReadInfo
     {
         readonly static object syncLock = new object();
-        internal Thread t1;
+        private Thread t1;
         internal Thread t2;
 
         /// <summary>
-        /// Извлекает папки из очереди, получает коллекцию файлов и создает экземпляры класса InfoAboutFile
+        /// Извлекает папки из очереди, получает коллекцию файлов и создает объекты типа InfoFile
         /// </summary>
         /// <param name="pathes">Очередь папок, из которой извлекаются подпапки</param>
-        public void CreateFileInfo(ref Queue<string> pathes)
+        public void GetFileInfo(ref Queue<string> pathes, ref Queue<InfoFile> infoFiles)
         {
-            string path_ = string.Empty;
-            
+            string path = string.Empty;
+            var infoFiles_ = infoFiles;
+
             lock (syncLock)
             {
                 if (t1 != null && !t1.IsAlive)
-                    path_ = pathes.Dequeue();
+                    path = pathes.Dequeue();
                 t2 = new Thread(() =>
                 {
                     var currThread = Thread.CurrentThread;
                     currThread.Name = "CreateFileInfo";
 
-                    if (path_ != string.Empty)
+                    if (path != string.Empty)
                     {
                         try
                         {
-                            var files = Directory.GetFiles(path_);
+                            var files = Directory.GetFiles(path);
 
-                            // TODO: запилить в метод
                             foreach (var file in files)
                             {
-                                FileInfo fi = new FileInfo(file);
-                                if (fi.Exists)
-                                {
-                                    InfoAboutFile info = new InfoAboutFile(fi.Directory.FullName, fi.Name, fi.Length);
+                                var info = CreateInfoFile(file);
+                                if (info == null)
+                                    continue;
 
-                                    Console.WriteLine($"\t{currThread.ManagedThreadId} {currThread.Name}: " +
-                                        $"{info.FileDirectory} - Файл: {info.FileName}, {info.FileLength} байт.");
+                                Console.WriteLine($"\t{currThread.ManagedThreadId} {currThread.Name}:");
 
-                                    //TODO: создание очереди из объектов класса InfoAboutFile
-                                }
+                                infoFiles_.Enqueue(info);
                             }
                         }
                         catch (Exception)
                         {
-                            Console.WriteLine($"\t*****Нет доступа к файлу  по пути {path_}*****");
+                            Debug.WriteLine($"\t*****Нет доступа к файлу  по пути {path}*****");
                         }
                     }
-                }, 5);
+                }, 0);
                 t2.Start();
             }
+        }
+
+        /// <summary>
+        /// Создает объект типа InfoFile
+        /// </summary>
+        /// <param name="file">Путь к файлу</param>
+        /// <returns>Возвращает объект типа InfoFile</returns>
+        private InfoFile CreateInfoFile(string file)
+        {
+            FileInfo fi = new FileInfo(file);
+            if (!fi.Exists)
+                return null;
+
+            InfoFile info = new InfoFile(fi.Directory.FullName, fi.Name, fi.Length);
+            //info.GetInfoAboutFile();
+            return info;
         }
 
         /// <summary>
@@ -85,8 +98,7 @@ namespace ConsoleReadFileInfo.Controllers
                             var folders = Directory.GetDirectories(path);
                             foreach (var f in folders)
                             {
-                                Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
-
+                                //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
                                 pathes_.Enqueue(f);
                                 GetPathes(f, ref pathes_);
                             }
@@ -94,21 +106,21 @@ namespace ConsoleReadFileInfo.Controllers
                     }
                     catch (Exception)
                     {
-                        Console.WriteLine($"\t* * * * * Нет доступа к папке по пути {path} * * * * *");
+                        Debug.WriteLine($"\t* * * * * Нет доступа к папке по пути {path} * * * * *");
                     }
-                }, 5);
+                }, 0);
                 t1.Start();
 
                 // потестить
-                if (t2 != null && t2.IsAlive)
-                    t2.Join();
+                //if (t2 != null && t2.IsAlive)
+                //    t2.Join();
             }
         }
 
         /// <summary>
-        /// Открывает форму для выбора директории
+        /// Открывает окно выбора папки
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Возвращает путь к выбранной папке</returns>
         internal string GetCurentFolder()
         {
             using (System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog())

@@ -46,8 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Controllers\IReadInfo.cs" />
+    <Compile Include="Controllers\IWriteInfo.cs" />
     <Compile Include="Controllers\ReadInfo.cs" />
-    <Compile Include="Model\InfoAboutFile.cs" />
+    <Compile Include="Controllers\WriteInfo.cs" />
+    <Compile Include="Model\InfoFile.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
