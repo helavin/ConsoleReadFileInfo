@@ -46,7 +46,8 @@ namespace ConsoleReadFileInfo.Controllers
                                 if (info == null)
                                     continue;
 
-                                Console.WriteLine($"\t{currThread.ManagedThreadId} {currThread.Name}:");
+                                //Console.WriteLine($"\t{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");
+                                
 
                                 infoFiles_.Enqueue(info);
                             }

@@ -6,12 +6,15 @@ using System.Threading.Tasks;
 
 namespace ConsoleReadFileInfo.Model
 {
-    class InfoFile
+    [Serializable]
+    public class InfoFile
     {
         internal string Dir;
-        internal string Name;
-        internal long Length;
+        public string Name;
+        public long Length;
 
+        public InfoFile()
+        { }
         public InfoFile(string directory, string name, long length)
         {
             Dir = directory;

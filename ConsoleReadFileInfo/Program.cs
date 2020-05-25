@@ -14,8 +14,12 @@ namespace ConsoleReadFileInfo
 {
     class Program
     {
+        private static string curentFolderPath;
         private static Queue<string> pathes = new Queue<string>();
         private static Queue<InfoFile> infoFiles = new Queue<InfoFile>();
+        static object locker = new object();
+        static ReadInfo readInfo = new ReadInfo();
+        static WriteInfo writeInfo = new WriteInfo();
 
         [STAThread]
         static void Main(string[] args)
@@ -25,38 +29,61 @@ namespace ConsoleReadFileInfo
 
             Console.OutputEncoding = Encoding.UTF8;
             System.Windows.Forms.MessageBox.Show("Укажите путь к папке!");
-            ReadInfo readInfo = new ReadInfo();
-
             
-
             // Путь к папке
-            string curentFolderPath = readInfo.GetCurentFolder();
+            curentFolderPath = readInfo.GetCurentFolder();
             if (!CheckPath(curentFolderPath))
                 return;
 
             pathes.Enqueue(curentFolderPath);
 
-            readInfo.GetPathes(curentFolderPath, ref pathes);
-
-
-            while (pathes.Any())
+            while (!infoFiles.Any())
             {
-                //Trace.WriteLine($"\t{currThread.ManagedThreadId}: {currThread.Name}");
+                Thread myThread1 = new Thread(GetPathes);
+                myThread1.Start();
+
+                while (pathes.Any())
+                {
+                    GetFileInfo();
+                }
+
+                lock (locker)
+                {
+                    if (infoFiles.Any())
+                    {
+                        Thread myThread3 = new Thread(WriteFileInfo);
+                        myThread3.Start();
+                    }
+                }
+            }
+            Console.ReadKey();
+        }
+
+
+
+        public static void GetPathes()
+        {
+            lock (locker)
+            {
+                readInfo.GetPathes(curentFolderPath, ref pathes);
+            }
+        }
+
+        public static void GetFileInfo()
+        {
+            lock (locker)
+            {
                 readInfo.GetFileInfo(ref pathes, ref infoFiles);
             }
+        }
 
-            while (infoFiles.Any())
+        private static void WriteFileInfo()
+        {
+            lock (locker)
             {
-                WriteInfo writeInfo = new WriteInfo();
-                writeInfo.WriteFileInfo(ref infoFiles);
+                if (infoFiles.Any())
+                    writeInfo.WriteFilesInfo(curentFolderPath, ref infoFiles);
             }
-
-
-            //Console.ReadKey();
-            //if (infoFiles.Count != 0)
-            //    foreach (var info in infoFiles)
-            //        Console.WriteLine(info.Name);
-            Console.ReadKey();
         }
 
         /// <summary>

@@ -9,6 +9,6 @@ namespace ConsoleReadFileInfo.Controllers
 {
     interface IWriteInfo
     {
-        void WriteFileInfo(ref Queue<InfoFile> infoFiles);
+        void WriteFilesInfo(string path, ref Queue<InfoFile> infoFiles);
     }
 }
