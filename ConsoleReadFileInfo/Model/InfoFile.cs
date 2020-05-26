@@ -6,9 +6,13 @@ using System.Threading.Tasks;
 
 namespace ConsoleReadFileInfo.Model
 {
+    
     [Serializable]
     public class InfoFile
     {
+        public static int i = 0;
+        internal int id = 0;
+
         internal string Dir;
         public string Name;
         public long Length;
@@ -17,6 +21,7 @@ namespace ConsoleReadFileInfo.Model
         { }
         public InfoFile(string directory, string name, long length)
         {
+            id = ++i;
             Dir = directory;
             Name = name;
             Length = length;
@@ -24,7 +29,8 @@ namespace ConsoleReadFileInfo.Model
 
         public void GetInfoAboutFile()
         {
-            Console.WriteLine($"{Dir} \t Файл: {Name}, {Length} байт.");
+            //Console.WriteLine($" {id} - {Dir} \t Файл: {Name}, {Length} байт.");
+            Console.WriteLine($" {Dir} \t Файл: {Name}, {Length} байт.");
         }
     }
 }

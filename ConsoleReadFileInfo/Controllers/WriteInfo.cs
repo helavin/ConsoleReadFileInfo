@@ -6,6 +6,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 namespace ConsoleReadFileInfo.Controllers
@@ -13,7 +15,7 @@ namespace ConsoleReadFileInfo.Controllers
     class WriteInfo : IWriteInfo
     {
         readonly static object syncLock = new object();
-        private Thread t3;
+        static Mutex mutexWriteObj = new Mutex();
 
         public void WriteFilesInfo(string path, ref Queue<InfoFile> infoFiles)
         {
@@ -33,8 +35,8 @@ namespace ConsoleReadFileInfo.Controllers
                 {
                     List<InfoFile> list = infoFiles.ToList();
                     formatter.Serialize(fs, list);
-                    list.ForEach(x => Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {x.Dir} {x.Name}"));
-                    //list.ForEach(x => x.GetInfoAboutFile());
+                    //list.ForEach(x => Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {x.Dir} {x.Name}"));
+                    list.ForEach(x => x.GetInfoAboutFile());
                     infoFiles.Clear();
                     count = list.Count();
                 }
@@ -45,35 +47,43 @@ namespace ConsoleReadFileInfo.Controllers
 
         public void WriteFileInfo(string path, InfoFile infoFile)
         {
-            InfoFile info = null;
-            lock (syncLock)
+            if (infoFile == null)
+                return;
+
+            var currThread = Thread.CurrentThread;
+            currThread.Name = "WriteFileInfo";
+
+            string fullpath = Path.Combine(path, "infoFiles.xml");
+            mutexWriteObj.WaitOne();
+            XDocument xdoc;
+            XElement root = new XElement("InfoFiles");
+
+            // создаем элемент
+            XElement infoFileElem = new XElement("InfoFile");
+            //XElement idElem = new XElement("id", infoFile.id);
+            XElement nameElem = new XElement("Name", infoFile.Name);
+            XElement lengthElem = new XElement("Length", infoFile.Length.ToString());
+
+            //infoFileElem.Add(idElem);
+            infoFileElem.Add(nameElem);
+            infoFileElem.Add(lengthElem);
+
+            FileInfo fileInf = new FileInfo(fullpath);
+            if (!fileInf.Exists)
             {
-                // объект для сериализации
-                info = infoFile;
-                string fullpath = Path.Combine(path, "infoFiles.xml");//$"{path}\\infoFiles.xml";
-
-                t3 = new Thread(() =>
-                {
-                    var currThread = Thread.CurrentThread;
-                    currThread.Name = "WriteFileInfo";
-
-                    // передаем в конструктор тип класса
-                    XmlSerializer formatter = new XmlSerializer(typeof(InfoFile));
-
-                    // получаем поток, куда будем записывать сериализованный объект
-                    using (FileStream fs = new FileStream(fullpath, FileMode.OpenOrCreate))
-                    {
-                        formatter.Serialize(fs, info);
-
-                        Console.WriteLine("Объект сериализован");
-                    }
-
-                    //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");
-                    //info.GetInfoAboutFile();
-                });
-                t3.Start();
-
+                xdoc = new XDocument();
+                root.Add(infoFileElem);
+                xdoc.Add(root);
             }
+            else
+            {
+                xdoc = XDocument.Load(fullpath);
+                xdoc.Root.Add(infoFileElem);
+            }
+            //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {infoFile.Dir} {infoFile.Name}");
+            infoFile.GetInfoAboutFile();
+            xdoc.Save(fullpath);
+            mutexWriteObj.ReleaseMutex();
         }
     }
 }

@@ -48,8 +48,7 @@ namespace ConsoleReadFileInfo.Controllers
                                 if (info == null)
                                     continue;
 
-                                Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");              
-
+                                //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");
                                 infoFiles_.Enqueue(info);
                             }
                         }
@@ -100,7 +99,7 @@ namespace ConsoleReadFileInfo.Controllers
                             var folders = Directory.GetDirectories(path);
                             foreach (var f in folders)
                             {
-                                Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
+                                //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
                                 pathes_.Enqueue(f);
                                 GetPathes(f, ref pathes_);
                             }

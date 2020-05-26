@@ -23,6 +23,24 @@ namespace ConsoleReadFileInfo
 
         static Mutex mutexObj = new Mutex();
 
+        public static InfoFile CurrentInfoFile
+        {
+            get
+            {
+                if (infoFiles.Count >= 1)
+                {
+                    var tmp = infoFiles.Peek();
+                    if (tmp != null && tmp.Name != null)
+                        return tmp; //.Dequeue();
+                    else return null;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+        }
+
         [STAThread]
         static void Main(string[] args)
         {
@@ -41,16 +59,23 @@ namespace ConsoleReadFileInfo
             pathes.Enqueue(curentFolderPath);
 
             new Thread(() => GetPathes(ref pathes/*, mutex*/)).Start();
+            Console.WriteLine("Идёт обработка данных... шас всё будет...");
 
-            while (!infoFiles.Any())
+            while (!infoFiles.Any() && pathes.Any())
             {
                 new Thread(() => GetFileInfo(ref pathes/*, mutex*/)).Start();
-                
-                new Thread(() => WriteFilesInfo(ref infoFiles/*, mutex*/)).Start();
+
+                //new Thread(() => WriteFilesInfo(ref infoFiles/*, mutex*/)).Start();
+                while (infoFiles.Any())
+                {
+                    if (CurrentInfoFile != null)
+                        // new Thread(() => WriteFileInfo(infoFiles.Dequeue()/*CurrentInfoFile*//*, mutex*/)).Start();
+                        WriteFileInfo(infoFiles.Dequeue()/*, mutex*/);
+                }
             }
+
             Console.ReadKey();
         }
-
 
         /// <summary>
         /// Потокозащищенный вызов readInfo.GetPathes
@@ -59,10 +84,6 @@ namespace ConsoleReadFileInfo
         /// <param name="mutex"></param>
         public static void GetPathes(ref Queue<string> pathes/*, object mutex*/)
         {
-            //lock (mutex)
-            //{
-            //    readInfo.GetPathes(curentFolderPath, ref pathes);
-            //} // или
             mutexObj.WaitOne();
             readInfo.GetPathes(curentFolderPath, ref pathes);
             mutexObj.ReleaseMutex();
@@ -74,11 +95,6 @@ namespace ConsoleReadFileInfo
         /// <param name="pathes">Очередь папок из которой извлекаются подпапки</param>
         public static void GetFileInfo(ref Queue<string> pathes/*, object mutex*/)
         {
-            //lock (mutex)
-            //{
-            //    while (pathes.Any())
-            //        readInfo.GetFileInfo(ref pathes, ref infoFiles);
-            //} // или
             mutexObj.WaitOne();
             while (pathes.Any())
                 readInfo.GetFileInfo(ref pathes, ref infoFiles);
@@ -86,7 +102,18 @@ namespace ConsoleReadFileInfo
         }
 
         /// <summary>
-        /// Потокозащищенный вызов writeInfo.WriteFilesInfo
+        /// Потокозащищенная запись объектов в xml
+        /// </summary>
+        /// <param name="infoFile">Объект для записи</param>
+        private static void WriteFileInfo(InfoFile infoFile/*, object mutex*/)
+        {
+            mutexObj.WaitOne();
+            new Thread(() => writeInfo.WriteFileInfo(curentFolderPath, infoFile)).Start();
+            mutexObj.ReleaseMutex();
+        }
+
+        /// <summary>
+        /// Потокозащищенная запись объектов в xml
         /// </summary>
         /// <param name="infoFiles">Очередь из которой извлекаются объекты типа InfoFile</param>
         private static void WriteFilesInfo(ref Queue<InfoFile> infoFiles/*, object mutex*/)
@@ -97,8 +124,7 @@ namespace ConsoleReadFileInfo
             //        writeInfo.WriteFilesInfo(curentFolderPath, ref infoFiles);
             //} // или
             mutexObj.WaitOne();
-            if (infoFiles.Any())
-                writeInfo.WriteFilesInfo(curentFolderPath, ref infoFiles);
+            writeInfo.WriteFilesInfo(curentFolderPath, ref infoFiles);
             mutexObj.ReleaseMutex();
         }
 
