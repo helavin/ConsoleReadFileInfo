@@ -3,10 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 
@@ -19,10 +16,7 @@ namespace ConsoleReadFileInfo.Controllers
 
         public void WriteFilesInfo(string path, ref Queue<InfoFile> infoFiles)
         {
-            var currThread = Thread.CurrentThread;
-            currThread.Name = "WriteFileInfo";
-
-            string fullpath = $"{path}\\infoFiles.xml";
+            string fullpath = Path.Combine(path, "infoFiles.xml");
 
             // передаем в конструктор тип класса
             XmlSerializer formatter = new XmlSerializer(typeof(List<InfoFile>));
@@ -49,9 +43,6 @@ namespace ConsoleReadFileInfo.Controllers
         {
             if (infoFile == null)
                 return;
-
-            var currThread = Thread.CurrentThread;
-            currThread.Name = "WriteFileInfo";
 
             string fullpath = Path.Combine(path, "infoFiles.xml");
             mutexWriteObj.WaitOne();
@@ -80,7 +71,6 @@ namespace ConsoleReadFileInfo.Controllers
                 xdoc = XDocument.Load(fullpath);
                 xdoc.Root.Add(infoFileElem);
             }
-            //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {infoFile.Dir} {infoFile.Name}");
             infoFile.GetInfoAboutFile();
             xdoc.Save(fullpath);
             mutexWriteObj.ReleaseMutex();

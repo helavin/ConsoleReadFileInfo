@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.IO;
 using ConsoleReadFileInfo.Model;
 using System.Threading;
@@ -15,7 +12,6 @@ namespace ConsoleReadFileInfo.Controllers
         readonly static object syncLock = new object();
         private Thread t1;
         internal Thread t2;
-
 
         /// <summary>
         /// Извлекает папки из очереди, получает коллекцию файлов и создает объекты типа InfoFile
@@ -33,9 +29,6 @@ namespace ConsoleReadFileInfo.Controllers
                     path = pathes.Dequeue();
                 t2 = new Thread(() =>
                 {
-                    var currThread = Thread.CurrentThread;
-                    currThread.Name = "CreateFileInfo";
-
                     if (path != string.Empty)
                     {
                         try
@@ -48,7 +41,6 @@ namespace ConsoleReadFileInfo.Controllers
                                 if (info == null)
                                     continue;
 
-                                //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");
                                 infoFiles_.Enqueue(info);
                             }
                         }
@@ -74,7 +66,6 @@ namespace ConsoleReadFileInfo.Controllers
                 return null;
 
             InfoFile info = new InfoFile(fi.Directory.FullName, fi.Name, fi.Length);
-            //info.GetInfoAboutFile();
             return info;
         }
 
@@ -90,8 +81,6 @@ namespace ConsoleReadFileInfo.Controllers
             {
                 t1 = new Thread(() =>
                 {
-                    var currThread = Thread.CurrentThread;
-                    currThread.Name = "GetPathes";
                     try
                     {
                         if (Directory.Exists(path))
@@ -99,7 +88,6 @@ namespace ConsoleReadFileInfo.Controllers
                             var folders = Directory.GetDirectories(path);
                             foreach (var f in folders)
                             {
-                                //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
                                 pathes_.Enqueue(f);
                                 GetPathes(f, ref pathes_);
                             }
@@ -111,10 +99,6 @@ namespace ConsoleReadFileInfo.Controllers
                     }
                 }, 0);
                 t1.Start();
-
-                // потестить
-                //if (t2 != null && t2.IsAlive)
-                //    t2.Join();
             }
         }
 

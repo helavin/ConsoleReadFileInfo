@@ -2,13 +2,9 @@
 using ConsoleReadFileInfo.Model;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-
 
 namespace ConsoleReadFileInfo
 {
@@ -29,10 +25,7 @@ namespace ConsoleReadFileInfo
             {
                 if (infoFiles.Count >= 1)
                 {
-                    var tmp = infoFiles.Peek();
-                    if (tmp != null && tmp.Name != null)
-                        return tmp; //.Dequeue();
-                    else return null;
+                    return infoFiles.Peek();
                 }
                 else
                 {
@@ -45,8 +38,6 @@ namespace ConsoleReadFileInfo
         static void Main(string[] args)
         {
             object mutex = new object();
-            var currThread = Thread.CurrentThread;
-            currThread.Name = "Main";
 
             Console.OutputEncoding = Encoding.UTF8;
             System.Windows.Forms.MessageBox.Show("Укажите путь к папке!");
@@ -58,19 +49,17 @@ namespace ConsoleReadFileInfo
 
             pathes.Enqueue(curentFolderPath);
 
-            new Thread(() => GetPathes(ref pathes/*, mutex*/)).Start();
+            new Thread(() => GetPathes(ref pathes)).Start();
             Console.WriteLine("Идёт обработка данных... шас всё будет...");
 
             while (!infoFiles.Any() && pathes.Any())
             {
-                new Thread(() => GetFileInfo(ref pathes/*, mutex*/)).Start();
+                new Thread(() => GetFileInfo(ref pathes)).Start();
 
-                //new Thread(() => WriteFilesInfo(ref infoFiles/*, mutex*/)).Start();
                 while (infoFiles.Any())
                 {
                     if (CurrentInfoFile != null)
-                        // new Thread(() => WriteFileInfo(infoFiles.Dequeue()/*CurrentInfoFile*//*, mutex*/)).Start();
-                        WriteFileInfo(infoFiles.Dequeue()/*, mutex*/);
+                        WriteFileInfo(infoFiles.Dequeue());
                 }
             }
 
@@ -82,7 +71,7 @@ namespace ConsoleReadFileInfo
         /// </summary>
         /// <param name="pathes">Очередь папок, в которую добавляются подпапки</param>
         /// <param name="mutex"></param>
-        public static void GetPathes(ref Queue<string> pathes/*, object mutex*/)
+        public static void GetPathes(ref Queue<string> pathes)
         {
             mutexObj.WaitOne();
             readInfo.GetPathes(curentFolderPath, ref pathes);
@@ -93,7 +82,7 @@ namespace ConsoleReadFileInfo
         /// Потокозащищенный вызов readInfo.GetFileInfo
         /// </summary>
         /// <param name="pathes">Очередь папок из которой извлекаются подпапки</param>
-        public static void GetFileInfo(ref Queue<string> pathes/*, object mutex*/)
+        public static void GetFileInfo(ref Queue<string> pathes)
         {
             mutexObj.WaitOne();
             while (pathes.Any())
@@ -105,7 +94,7 @@ namespace ConsoleReadFileInfo
         /// Потокозащищенная запись объектов в xml
         /// </summary>
         /// <param name="infoFile">Объект для записи</param>
-        private static void WriteFileInfo(InfoFile infoFile/*, object mutex*/)
+        private static void WriteFileInfo(InfoFile infoFile)
         {
             mutexObj.WaitOne();
             new Thread(() => writeInfo.WriteFileInfo(curentFolderPath, infoFile)).Start();
@@ -116,13 +105,8 @@ namespace ConsoleReadFileInfo
         /// Потокозащищенная запись объектов в xml
         /// </summary>
         /// <param name="infoFiles">Очередь из которой извлекаются объекты типа InfoFile</param>
-        private static void WriteFilesInfo(ref Queue<InfoFile> infoFiles/*, object mutex*/)
+        private static void WriteFilesInfo(ref Queue<InfoFile> infoFiles)
         {
-            //lock (mutex)
-            //{
-            //    if (infoFiles.Any())
-            //        writeInfo.WriteFilesInfo(curentFolderPath, ref infoFiles);
-            //} // или
             mutexObj.WaitOne();
             writeInfo.WriteFilesInfo(curentFolderPath, ref infoFiles);
             mutexObj.ReleaseMutex();
@@ -132,7 +116,7 @@ namespace ConsoleReadFileInfo
         /// Проверяет содержит ли path путь к папке
         /// </summary>
         /// <param name="path">Путь который необходимо проверить</param>
-        /// <returns></returns>
+        /// <returns>bool</returns>
         private static bool CheckPath(string path)
         {
             if (path == string.Empty)

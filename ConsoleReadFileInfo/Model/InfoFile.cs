@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ConsoleReadFileInfo.Model
 {
@@ -29,7 +25,6 @@ namespace ConsoleReadFileInfo.Model
 
         public void GetInfoAboutFile()
         {
-            //Console.WriteLine($" {id} - {Dir} \t Файл: {Name}, {Length} байт.");
             Console.WriteLine($" {Dir} \t Файл: {Name}, {Length} байт.");
         }
     }
