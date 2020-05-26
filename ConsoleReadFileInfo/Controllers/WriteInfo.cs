@@ -17,6 +17,9 @@ namespace ConsoleReadFileInfo.Controllers
 
         public void WriteFilesInfo(string path, ref Queue<InfoFile> infoFiles)
         {
+            var currThread = Thread.CurrentThread;
+            currThread.Name = "WriteFileInfo";
+
             string fullpath = $"{path}\\infoFiles.xml";
 
             // передаем в конструктор тип класса
@@ -30,7 +33,8 @@ namespace ConsoleReadFileInfo.Controllers
                 {
                     List<InfoFile> list = infoFiles.ToList();
                     formatter.Serialize(fs, list);
-                    list.ForEach(x => x.GetInfoAboutFile());
+                    list.ForEach(x => Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {x.Dir} {x.Name}"));
+                    //list.ForEach(x => x.GetInfoAboutFile());
                     infoFiles.Clear();
                     count = list.Count();
                 }
@@ -41,11 +45,11 @@ namespace ConsoleReadFileInfo.Controllers
 
         public void WriteFileInfo(string path, InfoFile infoFile)
         {
-            InfoFile file = null;
+            InfoFile info = null;
             lock (syncLock)
             {
                 // объект для сериализации
-                file = infoFile;
+                info = infoFile;
                 string fullpath = Path.Combine(path, "infoFiles.xml");//$"{path}\\infoFiles.xml";
 
                 t3 = new Thread(() =>
@@ -59,13 +63,13 @@ namespace ConsoleReadFileInfo.Controllers
                     // получаем поток, куда будем записывать сериализованный объект
                     using (FileStream fs = new FileStream(fullpath, FileMode.OpenOrCreate))
                     {
-                        formatter.Serialize(fs, file);
+                        formatter.Serialize(fs, info);
 
                         Console.WriteLine("Объект сериализован");
                     }
 
-                    Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}:");
-                    file.GetInfoAboutFile();
+                    //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");
+                    //info.GetInfoAboutFile();
                 });
                 t3.Start();
 

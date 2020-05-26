@@ -16,10 +16,12 @@ namespace ConsoleReadFileInfo.Controllers
         private Thread t1;
         internal Thread t2;
 
+
         /// <summary>
         /// Извлекает папки из очереди, получает коллекцию файлов и создает объекты типа InfoFile
         /// </summary>
         /// <param name="pathes">Очередь папок, из которой извлекаются подпапки</param>
+        /// <param name="infoFiles">Очередь в которую добавляются объекты типа InfoFile</param>
         public void GetFileInfo(ref Queue<string> pathes, ref Queue<InfoFile> infoFiles)
         {
             string path = string.Empty;
@@ -46,8 +48,7 @@ namespace ConsoleReadFileInfo.Controllers
                                 if (info == null)
                                     continue;
 
-                                //Console.WriteLine($"\t{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");
-                                
+                                Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {info.Dir} {info.Name}");              
 
                                 infoFiles_.Enqueue(info);
                             }
@@ -99,7 +100,7 @@ namespace ConsoleReadFileInfo.Controllers
                             var folders = Directory.GetDirectories(path);
                             foreach (var f in folders)
                             {
-                                //Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
+                                Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {f}");
                                 pathes_.Enqueue(f);
                                 GetPathes(f, ref pathes_);
                             }
