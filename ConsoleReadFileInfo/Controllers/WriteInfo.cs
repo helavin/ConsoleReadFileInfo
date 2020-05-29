@@ -14,7 +14,7 @@ namespace ConsoleReadFileInfo.Controllers
         readonly static object syncLock = new object();
         static Mutex mutexWriteObj = new Mutex();
 
-        public void WriteFilesInfo(string path, ref Queue<InfoFile> infoFiles)
+        public void WriteFilesInfo(string path, Queue<InfoFile> infoFiles)
         {
             string fullpath = Path.Combine(path, "infoFiles.xml");
 
@@ -29,7 +29,6 @@ namespace ConsoleReadFileInfo.Controllers
                 {
                     List<InfoFile> list = infoFiles.ToList();
                     formatter.Serialize(fs, list);
-                    //list.ForEach(x => Console.WriteLine($"{currThread.ManagedThreadId} {currThread.Name}: {x.Dir} {x.Name}"));
                     list.ForEach(x => x.GetInfoAboutFile());
                     infoFiles.Clear();
                     count = list.Count();

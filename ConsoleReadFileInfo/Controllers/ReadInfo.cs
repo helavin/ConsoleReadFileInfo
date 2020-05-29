@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace ConsoleReadFileInfo.Controllers
 {
-    class ReadInfo : IReadInfo
+    public class ReadInfo : IReadInfo
     {
         readonly static object syncLock = new object();
         private Thread t1;
@@ -18,11 +18,11 @@ namespace ConsoleReadFileInfo.Controllers
         /// </summary>
         /// <param name="pathes">Очередь папок, из которой извлекаются подпапки</param>
         /// <param name="infoFiles">Очередь в которую добавляются объекты типа InfoFile</param>
-        public void GetFileInfo(ref Queue<string> pathes, ref Queue<InfoFile> infoFiles)
+        public void GetFileInfo(Queue<string> pathes, Queue<InfoFile> infoFiles)
         {
             string path = string.Empty;
-            var infoFiles_ = infoFiles;
-
+            //var infoFiles_ = infoFiles;
+            
             lock (syncLock)
             {
                 if (t1 != null && !t1.IsAlive)
@@ -41,7 +41,7 @@ namespace ConsoleReadFileInfo.Controllers
                                 if (info == null)
                                     continue;
 
-                                infoFiles_.Enqueue(info);
+                                infoFiles.Enqueue(info);
                             }
                         }
                         catch (Exception)
@@ -59,7 +59,7 @@ namespace ConsoleReadFileInfo.Controllers
         /// </summary>
         /// <param name="file">Путь к файлу</param>
         /// <returns>Возвращает объект типа InfoFile</returns>
-        private InfoFile CreateInfoFile(string file)
+        public InfoFile CreateInfoFile(string file)
         {
             FileInfo fi = new FileInfo(file);
             if (!fi.Exists)
@@ -74,9 +74,9 @@ namespace ConsoleReadFileInfo.Controllers
         /// </summary>
         /// <param name="path">Папка в которой нужно найти подпапки</param>
         /// <param name="pathes">Очередь папок, в которую добавляются подпапки</param>
-        public void GetPathes(string path, ref Queue<string> pathes)
+        public void GetPathes(string path, Queue<string> pathes)
         {
-            var pathes_ = pathes;
+            //var pathes_ = pathes;
             lock (syncLock)
             {
                 t1 = new Thread(() =>
@@ -88,8 +88,8 @@ namespace ConsoleReadFileInfo.Controllers
                             var folders = Directory.GetDirectories(path);
                             foreach (var f in folders)
                             {
-                                pathes_.Enqueue(f);
-                                GetPathes(f, ref pathes_);
+                                pathes.Enqueue(f);
+                                GetPathes(f, pathes);
                             }
                         }
                     }
@@ -102,19 +102,7 @@ namespace ConsoleReadFileInfo.Controllers
             }
         }
 
-        /// <summary>
-        /// Открывает окно выбора папки
-        /// </summary>
-        /// <returns>Возвращает путь к выбранной папке</returns>
-        internal string GetCurentFolder()
-        {
-            using (System.Windows.Forms.FolderBrowserDialog dialog = new System.Windows.Forms.FolderBrowserDialog())
-            {
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                    return dialog.SelectedPath;
-                else return string.Empty;
-            }
-        }
+        
 
     }
 }

@@ -4,10 +4,9 @@ using System.Collections.Generic;
 
 namespace ConsoleReadFileInfo.Controllers
 {
-    interface IReadInfo
+    public interface IReadInfo
     {
-        void GetPathes(string path, ref Queue<string> pathes);
-        void GetFileInfo(ref Queue<string> pathes, ref Queue<InfoFile> infoFiles);
-        
+        void GetPathes(string path, Queue<string> pathes);
+        void GetFileInfo(Queue<string> pathes, Queue<InfoFile> infoFiles);
     }
 }
