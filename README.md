@@ -11,4 +11,8 @@ The calculation result is saved in the same <b> folder </b> as an XML-file with 
 
 The calculation results are displayed on the screen as the results are obtained.
 
+<<<<<<< HEAD
 All files in all subfolders are processed.
+=======
+All files in all subfolders are processed.
+>>>>>>> 7a7b5dbc87914e10e0e4fc1d4c8d00317f0772de
