@@ -8,5 +8,6 @@ namespace ConsoleReadFileInfo.Controllers
     {
         void GetPathes(string path, Queue<string> pathes);
         void GetFileInfo(Queue<string> pathes, Queue<InfoFile> infoFiles);
+        InfoFile CreateInfoFile(string file);
     }
 }

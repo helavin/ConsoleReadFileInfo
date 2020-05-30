@@ -3,6 +3,7 @@ using ConsoleReadFileInfo.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading;
 
@@ -39,17 +40,15 @@ namespace ConsoleReadFileInfo
 
             new Thread(() => GetPathes(Pathes)).Start();
 
-            while (!InfoFiles.Any() /*&& Pathes.Any()*/)
+            while (!InfoFiles.Any() && Pathes.Any())
             {
                 new Thread(() => GetFileInfo(Pathes)).Start();
 
                 while (InfoFiles.Any())
                 {
-                    //if (CurrentInfoFile != null)
                     if (InfoFiles.Any())
                         WriteFileInfo(InfoFiles.Dequeue());
                 }
-                if (!Pathes.Any()) break;
             }
 
             Console.ReadKey();
