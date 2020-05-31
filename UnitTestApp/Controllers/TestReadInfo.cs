@@ -1,13 +1,12 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using ConsoleReadFileInfo.Controllers;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ConsoleReadFileInfo.Controllers;
 using ConsoleReadFileInfo.Model;
-
 using Moq;
 
-namespace ConsoleReadFileInfo.Tests
+namespace UnitTestApp.Controllers
 {
     [TestClass()]
     public class TestReadInfo
@@ -16,9 +15,9 @@ namespace ConsoleReadFileInfo.Tests
         private static Queue<InfoFile> InfoFiles { get; set; } = new Queue<InfoFile>();
 
         private IReadInfo _readInfo;
-        private static readonly string _path = "D:\\Temp";
-        private static readonly string _path1 = "D:\\Temp1";
-        private readonly string _path2 = "D:\\Temp2";
+        private const string _path = "D:\\Temp";
+        private const string _path1 = "D:\\Temp1";
+        private const string _path2 = "D:\\Temp2";
         private readonly InfoFile _infoFile1 = new InfoFile(_path, "file1.txt", 123);
         private readonly InfoFile _infoFile2 = new InfoFile(_path, "file2.txt", 456);
 
@@ -26,8 +25,6 @@ namespace ConsoleReadFileInfo.Tests
         public void Initialize()
         {
             _readInfo = Mock.Of<IReadInfo>();
-
-
         }
 
         [TestMethod()]
@@ -35,7 +32,7 @@ namespace ConsoleReadFileInfo.Tests
         {
             // Arrange
             Pathes.Clear();
-            Mock.Get(_readInfo)
+            _ = Mock.Get(_readInfo)
                 .Setup(x => x.GetPathes(It.IsAny<string>(), It.IsAny<Queue<string>>()))
                 .Callback(() =>
                 {
@@ -60,7 +57,7 @@ namespace ConsoleReadFileInfo.Tests
             Pathes.Enqueue(_path1);
             Pathes.Enqueue(_path2);
 
-            Mock.Get(_readInfo)
+            _ = Mock.Get(_readInfo)
                 .Setup(x => x.GetFileInfo(It.IsAny<Queue<string>>(), It.IsAny<Queue<InfoFile>>()))
                 .Callback(() =>
                 {
@@ -83,7 +80,7 @@ namespace ConsoleReadFileInfo.Tests
         public void CreateInfoFileTest()
         {
             // Arrange
-            Mock.Get(_readInfo)
+            _ = Mock.Get(_readInfo)
                 .Setup(x => x.CreateInfoFile(It.IsAny<string>()))
                 .Returns((string x) => _infoFile1);
 
