@@ -46,7 +46,7 @@ namespace ConsoleReadFileInfo.Controllers
                         }
                         catch (Exception)
                         {
-                            Debug.WriteLine($"\t*****Нет доступа к файлу  по пути {path}*****");
+                            Debug.WriteLine($"\t* * * * * Нет доступа к файлу  по пути {path} * * * * *");
                         }
                     }
                 }, 0);

@@ -71,7 +71,15 @@ namespace ConsoleReadFileInfo.Controllers
                 xdoc.Root.Add(infoFileElem);
             }
             infoFile.GetInfoAboutFile();
-            xdoc.Save(fullpath);
+            try
+            {
+                xdoc.Save(fullpath);
+            }
+            catch (Exception)
+            {
+                Console.WriteLine($"\t* * * * * Нет доступа к папке по пути {path} * * * * *");
+            }
+
             mutexWriteObj.ReleaseMutex();
         }
     }

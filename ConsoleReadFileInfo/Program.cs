@@ -11,7 +11,7 @@ namespace ConsoleReadFileInfo
 {
     public class Program
     {
-        public static string CurentFolderPath { get; set; }
+        public static string CurentFolderPath { get; private set; }
 
         public static Queue<string> Pathes { get; private set; } = new Queue<string>();
         public static Queue<InfoFile> InfoFiles { get; private set; } = new Queue<InfoFile>();
@@ -20,7 +20,7 @@ namespace ConsoleReadFileInfo
         static readonly IWriteInfo writeInfo = new WriteInfo();
 
         static readonly Mutex mutexObj = new Mutex();
-
+        static object locker = new object();
 
         [STAThread]
         static void Main(string[] args)
@@ -40,15 +40,27 @@ namespace ConsoleReadFileInfo
 
             new Thread(() => GetPathes(Pathes)).Start();
 
-            while (!InfoFiles.Any() && Pathes.Any())
+            while (!InfoFiles.Any())
             {
                 new Thread(() => GetFileInfo(Pathes)).Start();
 
                 while (InfoFiles.Any())
                 {
-                    if (InfoFiles.Any())
-                        WriteFileInfo(InfoFiles.Dequeue());
+                    WriteFileInfo(InfoFiles.Dequeue());
                 }
+
+                bool acquiredLock = false;
+                try
+                {
+                    Monitor.Enter(locker, ref acquiredLock);
+                    if (!Pathes.Any())
+                        break;
+                }
+                finally
+                {
+                    if (acquiredLock) Monitor.Exit(locker);
+                }
+
             }
 
             Console.ReadKey();
